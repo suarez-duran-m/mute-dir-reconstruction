@@ -1,0 +1,278 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# MuTe 2D\n",
+    "Codigo para identificar los pixeles iluminados en los paneles a partir de la dirección de arribo de muones identificadas mediante los cosenos directores:\n",
+    "\n",
+    "$\\vec{\\mathrm{e}}_{r}  =\\frac{\\vec{r}}{|\\vec{r}|} =   \\cos(a) \\vec{\\mathrm{e}}_{\\bar{x}} +\\cos(a) \\vec{\\mathrm{e}}_{\\bar{y}}  +\\cos(c) \\vec{\\mathrm{e}}_{\\bar{z}}$\n",
+    "respecto a los ejes coodenados $(\\bar{x},\\bar{y},\\bar{z})$ fijos en el telescopio\n",
+    "\n",
+    "![text](Figuras/Direction_cosine_unit_vector.png)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "import math"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Algunas funciones para empezar"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "# Función que pinta los paneles y los pixeles\n",
+    "# PanelArriba y PanelAbajo son dos arreglos bidimensionales NBar x NBar\n",
+    "def PintoPaneles(PanelArriba,PanelAbajo) :\n",
+    "    plt.subplot(1, 2, 1)\n",
+    "    plt.xlabel('i')\n",
+    "    plt.ylabel('j')\n",
+    "    plt.title('Panel superior')\n",
+    "    plt.imshow(PanelArriba)\n",
+    "    plt.subplot(1, 2, 2)\n",
+    "    plt.xlabel('k')\n",
+    "    plt.ylabel('l')    \n",
+    "    plt.title('Panel inferior')\n",
+    "    plt.imshow(PanelAbajo)\n",
+    "    # dibujo los paneles\n",
+    "    plt.show()\n",
+    "    return"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 42,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "# Valido si la función de entrada coseno o seno está en los rangos\n",
+    "def ValidoCosenoSeno(CosSen) :\n",
+    "    if CosSen < -1 or CosSen > 1 :\n",
+    "         print \" error en la funcion coseno o seno  \" \n",
+    "    return "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Paneles\n",
+    "\n",
+    "Caracterizo los dos paneles paralelos, separados una distancia $D \\equiv \\texttt{SeparacionPaneles}$ (medida en cm) conformados con $N \\equiv \\texttt{NBar}$ = número de Barras, cada una con un ancho $d \\equiv \\texttt{AnchBar}$ (medida en centímetros)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "# NBar = input(\"Numero de Barras ? \")\n",
+    "# AnchBar = input(\"Ancho de las Barras (cn) ? \")\n",
+    "# SeparacionPaneles = input(\"Separacion de los Paneles (cm) ? \")\n",
+    "NBar = 11 \n",
+    "AnchBar = 5 # cm\n",
+    "SeparacionPaneles = 100 # cm"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Pinto los paneles"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<matplotlib.figure.Figure at 0x10d09ec50>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# limpio el contenido de los paneles\n",
+    "PanelSuperior = np.zeros((NBar,NBar)) # i j\n",
+    "PanelInferior = np.zeros((NBar,NBar)) # k l\n",
+    "PintoPaneles(PanelSuperior,PanelInferior)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "a partir de las definiciones de los cosenos directores de la dirección de incidencia en términos de las dimensiones del detector \n",
+    "\n",
+    "$\\vec{r}_{m n} = X_{m}\\vec{\\mathrm{e}}_{\\bar{x}} +Y_{n}\\vec{\\mathrm{e}}_{\\bar{y}} +Z \\vec{\\mathrm{e}}_{\\bar{z}} \\equiv\n",
+    "d(k-i)\\vec{\\mathrm{e}}_{\\bar{x}} + d(l-j)\\vec{\\mathrm{e}}_{\\bar{y}} +D\\vec{\\mathrm{e}}_{\\bar{z}}$\n",
+    "\n",
+    "donde $i, j$ indican las posiciones de las barras en el panel superior tal y como se indica en la figura, mientras que $ k , l $ corresponden a las posiciones de las barras en el panel inferior.\n",
+    "\n",
+    "Por otro lado tenemos que \n",
+    "\n",
+    "$\\vec{\\mathrm{e}}_{r}  =\\frac{\\vec{r}}{|\\vec{r}|} =   \n",
+    "\\cos(a) \\vec{\\mathrm{e}}_{\\bar{x}} +\\cos(b) \\vec{\\mathrm{e}}_{\\bar{y}}  +\\cos(c) \\vec{\\mathrm{e}}_{\\bar{z}}   \\equiv \n",
+    "\\frac{(k-i)}{\\sqrt{ (k -i)^{2} + (l -j)^{2} + \\left(\\frac{D}{d}\\right)^{2} }  } \\vec{\\mathrm{e}}_{\\bar{x}} +\n",
+    "\\frac{(l-j)}{\\sqrt{ (k -i)^{2} + (l -j)^{2} + \\left(\\frac{D}{d}\\right)^{2} }  } \\vec{\\mathrm{e}}_{\\bar{y}} +\n",
+    "\\frac{ \\left(\\frac{D}{d}\\right)}{\\sqrt{ (k -i)^{2} + (l -j)^{2} + \\left(\\frac{D}{d}\\right)^{2} }} \\vec{\\mathrm{e}}_{\\bar{z}} $\n",
+    "\n",
+    "Con lo cual los cosenos directores quedan definidos en términos de los parámetros del telescopio como\n",
+    "\n",
+    "$\\cos(a) = \\frac{(k-i)}{\\sqrt{ (k -i)^{2} + (l -j)^{2} + \\left(\\frac{D}{d}\\right)^{2} }  }; \\quad $\n",
+    "$\\cos(b) = \\frac{(l-j)}{\\sqrt{ (k -i)^{2} + (l -j)^{2} + \\left(\\frac{D}{d}\\right)^{2} }  }; \\quad $\n",
+    "$\\cos(c) = \\frac{ \\left(\\frac{D}{d}\\right)}{\\sqrt{ (k -i)^{2} + (l -j)^{2} + \\left(\\frac{D}{d}\\right)^{2} }}. \\quad$ con la restricción $\\cos(a)^{2} + \\cos(b)^{2} + \\cos(c)^{2} = 1 $\n",
+    "\n",
+    "Resolviendo ese sistema encontramos\n",
+    "\n",
+    "$(k -i) = \\pm \\frac{D \\cos(a) }{d \\sqrt{ 1 - \\cos(a)^{2} - \\cos(b)^{2}} }; \\quad $ y \n",
+    "$\\quad (l -j) = \\pm \\frac{D \\cos(b) }{d \\sqrt{ 1 - \\cos(a)^{2} - \\cos(b)^{2}}}.$ \n",
+    "\n",
+    "Por lo tanto al conocer la dirección de arribo en términos de los cosenos directores, tendremos las relaciónes que deben cumplir los índices de los pixeles"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Los consenos directores de las direcciones de incidencia\n",
+    "Se insertan las direcciones de arribo en función de los cosenos directores"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "# CosAlpha = input(\"cos(alpha) ? \")\n",
+    "# CosBeta = input(\"cos(beta) ? \")\n",
+    "CosAlpha = 0.2 \n",
+    "ValidoCosenoSeno(CosAlpha)\n",
+    "CosBeta = .3\n",
+    "ValidoCosenoSeno(CosBeta)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "4 6\n"
+     ]
+    },
+    {
+     "data": {
+      "image/png": "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\nqAt/AAAAAElFTkSuQmCC\n",
+      "text/plain": [
+       "<matplotlib.figure.Figure at 0x10cdaaad0>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "# limpio el contenido de los paneles\n",
+    "PanelSuperior = np.zeros((NBar,NBar)) # i j\n",
+    "PanelInferior = np.zeros((NBar,NBar)) # k l\n",
+    "# ilumino los puntos que corresponden a direcciones equivalentes\n",
+    "DeltaXIngreso = int(SeparacionPaneles*CosAlpha/(AnchBar*math.sqrt(1-CosAlpha**2 -CosBeta**2)))\n",
+    "DeltaYIngreso = int(SeparacionPaneles*CosBeta/(AnchBar*math.sqrt(1-CosAlpha**2 -CosBeta**2)))\n",
+    "#\n",
+    "print DeltaXIngreso, DeltaYIngreso\n",
+    "for i in range(NBar)  :\n",
+    "    for j in range(NBar)  :\n",
+    "        if i+DeltaXIngreso < NBar  and i+DeltaXIngreso >= 0 :\n",
+    "            if j+DeltaYIngreso < NBar  and j +DeltaYIngreso >= 0 :\n",
+    "                PanelSuperior[j,i]= 10.\n",
+    "                PanelInferior[j+DeltaYIngreso,i+DeltaXIngreso]= 10.\n",
+    "            else :continue\n",
+    "        else : continue\n",
+    "# Pinto los paneles            \n",
+    "PintoPaneles(PanelSuperior,PanelInferior)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 2",
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.11"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}

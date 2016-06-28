@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <title></title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="reveal.js/css/reveal.css">
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="reveal.js/css/theme/black.css" id="theme">
+  <!-- Printing and PDF exports -->
+  <script>
+    var link = document.createElement( 'link' );
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = window.location.search.match( /print-pdf/gi ) ? 'reveal.js/css/print/pdf.css' : 'reveal.js/css/print/paper.css';
+    document.getElementsByTagName( 'head' )[0].appendChild( link );
+  </script>
+  <!--[if lt IE 9]>
+  <script src="reveal.js/lib/js/html5shiv.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+
+<section class="slide level2">
+
+<p>This application is used to convert notebook files (*.ipynb) to various other formats.</p>
+<p>WARNING: THE COMMANDLINE INTERFACE MAY CHANGE IN FUTURE RELEASES.</p>
+</section>
+<section id="options" class="slide level2">
+<h1>Options</h1>
+<p>Arguments that take values are actually convenience aliases to full Configurables, whose aliases are listed on the help line. For more information on full configurables, see ‘–help-all’.</p>
+<p>-y Answer yes to any questions instead of prompting. –execute Execute the notebook prior to export. –allow-errors Continue notebook execution even if one of the cells throws an error and include the error message in the cell output (the default behaviour is to abort conversion). This flag is only relevant if ‘–execute’ was specified, too. –stdout Write notebook output to stdout instead of files. –debug set log level to logging.DEBUG (maximize logging output) –inplace Run nbconvert in place, overwriting the existing notebook (only relevant when converting to notebook format) –generate-config generate default config file –reveal-prefix=<Unicode> (SlidesExporter.reveal_url_prefix) Default: u’‘The URL prefix for reveal.js. This can be a a relative URL for a local copy of reveal.js, or point to a CDN. For speaker notes to work, a local reveal.js prefix must be used. –nbformat=<Enum> (NotebookExporter.nbformat_version) Default: 4 Choices: [1, 2, 3, 4] The nbformat version to write. Use this to downgrade notebooks. –writer=<DottedObjectName> (NbConvertApp.writer_class) Default: ’FilesWriter’ Writer class used to write the results of the conversion –log-level=<Enum> (Application.log_level) Default: 30 Choices: (0, 10, 20, 30, 40, 50, ‘DEBUG’, ‘INFO’, ‘WARN’, ‘ERROR’, ‘CRITICAL’) Set the log level by value or name. –to=<CaselessStrEnum> (NbConvertApp.export_format) Default: ‘html’ Choices: [u’custom’, u’html’, u’latex’, u’markdown’, u’notebook’, u’pdf’, u’python’, u’rst’, u’script’, u’slides’] The export format to be used. –template=<Unicode> (TemplateExporter.template_file) Default: u’‘Name of the template file to use –output=<Unicode> (NbConvertApp.output_base) Default:’‘overwrite base name use for output files. can only be used when converting one notebook at a time. –post=<DottedOrNone> (NbConvertApp.postprocessor_class) Default: u’‘PostProcessor class used to write the results of the conversion –config=<Unicode> (JupyterApp.config_file) Default: u’’ Full path of a config file.</p>
+<p>To see all available configurables, use <code>--help-all</code></p>
+</section>
+<section id="examples" class="slide level2">
+<h1>Examples</h1>
+<pre><code>The simplest way to use nbconvert is
+
+&gt; jupyter nbconvert mynotebook.ipynb
+
+which will convert mynotebook.ipynb to the default format (probably HTML).
+
+You can specify the export format with `--to`.
+Options include [&#39;custom&#39;, &#39;html&#39;, &#39;latex&#39;, &#39;markdown&#39;, &#39;notebook&#39;, &#39;pdf&#39;, &#39;python&#39;, &#39;rst&#39;, &#39;script&#39;, &#39;slides&#39;]
+
+&gt; jupyter nbconvert --to latex mynotebook.ipynb
+
+Both HTML and LaTeX support multiple output templates. LaTeX includes
+&#39;base&#39;, &#39;article&#39; and &#39;report&#39;.  HTML includes &#39;basic&#39; and &#39;full&#39;. You
+can specify the flavor of the format used.
+
+&gt; jupyter nbconvert --to html --template basic mynotebook.ipynb
+
+You can also pipe the output to stdout, rather than a file
+
+&gt; jupyter nbconvert mynotebook.ipynb --stdout
+
+PDF is generated via latex
+
+&gt; jupyter nbconvert mynotebook.ipynb --to pdf
+
+You can get (and serve) a Reveal.js-powered slideshow
+
+&gt; jupyter nbconvert myslides.ipynb --to slides --post serve
+
+Multiple notebooks can be given at the command line in a couple of 
+different ways:
+
+&gt; jupyter nbconvert notebook*.ipynb
+&gt; jupyter nbconvert notebook1.ipynb notebook2.ipynb
+
+or you can specify the notebooks list in a config file, containing::
+
+    c.NbConvertApp.notebooks = [&quot;my_notebook.ipynb&quot;]
+
+&gt; jupyter nbconvert --config mycfg.py</code></pre>
+</section>
+    </div>
+  </div>
+
+  <script src="reveal.js/lib/js/head.min.js"></script>
+  <script src="reveal.js/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true },
+          { src: 'reveal.js/plugin/notes/notes.js', async: true }
+        ]
+      });
+    </script>
+    </body>
+</html>
